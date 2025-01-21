@@ -1869,6 +1869,66 @@ void MainFrame::init_menubar_as_editor()
             "search", nullptr, []() { return true; }, this);
     }
 
+
+    // MyMenu menu
+wxMenu* myMenu = nullptr;
+    if (m_plater != nullptr)
+    {
+        myMenu = new wxMenu();
+    #ifdef __APPLE__
+        // Backspace sign
+        wxString hotkey_delete = "\u232b";
+    #else
+        wxString hotkey_delete = "Del";
+    #endif
+        append_menu_item(myMenu, wxID_ANY, _L("&Select All") + "\tCtrl+A",
+            _L("Selects all objects"), [this](wxCommandEvent&) { m_plater->select_all(); },
+            "", nullptr, [this](){return can_select() && can_change_view(); }, this);
+        append_menu_item(myMenu, wxID_ANY, _L("D&eselect All") + "\tEsc",
+            _L("Deselects all objects"), [this](wxCommandEvent&) { m_plater->deselect_all(); },
+            "", nullptr, [this](){return can_deselect() && can_change_view(); }, this);
+        myMenu->AppendSeparator();
+        append_menu_item(myMenu, wxID_ANY, _L("&Delete Selected") + "\t" + /*hotkey_delete don't use the real escape key, or it will prevent del on some fields*/ "Dèl",
+            _L("Deletes the current selection"),[this](wxCommandEvent&) { m_plater->remove_selected(); },
+            "remove_menu", nullptr, [this](){return can_delete() && can_change_view(); }, this);
+        append_menu_item(myMenu, wxID_ANY, _L("Delete &All") + "\tCtrl+" + hotkey_delete,
+            _L("Deletes all objects"), [this](wxCommandEvent&) { m_plater->reset_with_confirm(); },
+            "delete_all_menu", nullptr, [this](){return can_delete_all() && can_change_view(); }, this);
+
+        myMenu->AppendSeparator();
+        append_menu_item(myMenu, wxID_ANY, _L("&Undo") + "\tCtrl+Z",
+            _L("Undo"), [this](wxCommandEvent&) { m_plater->undo(); },
+            "undo_menu", nullptr, [this](){return m_plater->can_undo() && can_change_view(); }, this);
+        append_menu_item(myMenu, wxID_ANY, _L("&Redo") + "\tCtrl+Y",
+            _L("Redo"), [this](wxCommandEvent&) { m_plater->redo(); },
+            "redo_menu", nullptr, [this](){return m_plater->can_redo() && can_change_view(); }, this);
+
+        myMenu->AppendSeparator();
+        append_menu_item(myMenu, wxID_ANY, _L("&Copy") + "\tCtrl+C",
+            _L("Copy selection to clipboard"), [this](wxCommandEvent&) { m_plater->copy_selection_to_clipboard(); },
+            "copy_menu", nullptr, [this](){return m_plater->can_copy_to_clipboard() && can_change_view(); }, this);
+        append_menu_item(myMenu, wxID_ANY, _L("&Paste") + "\tCtrl+V",
+            _L("Paste clipboard"), [this](wxCommandEvent&) { m_plater->paste_from_clipboard(); },
+            "paste_menu", nullptr, [this](){return m_plater->can_paste_from_clipboard() && can_change_view(); }, this);
+        
+        myMenu->AppendSeparator();
+#ifdef __APPLE__
+        append_menu_item(myMenu, wxID_ANY, _L("Re&load from Disk") + dots + "\tCtrl+Shift+R",
+            _L("Reload the platter from disk"), [this](wxCommandEvent&) { m_plater->reload_all_from_disk(); },
+            "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
+#else
+        append_menu_item(myMenu, wxID_ANY, _L("Re&load from Disk") + "\t" + "F5",
+            _L("Reload the plater from disk"), [this](wxCommandEvent&) { m_plater->reload_all_from_disk(); },
+            "", nullptr, [this]() {return !m_plater->model().objects.empty(); }, this);
+#endif // __APPLE__
+
+        myMenu->AppendSeparator();
+        append_menu_item(myMenu, wxID_ANY, _L("Searc&h") + "\tCtrl+F",
+            _L("Search in settings"), [this](wxCommandEvent&) { m_plater->search(/*m_tabpanel->GetCurrentPage() == */m_plater->IsShown() && can_change_view()); },
+            "search", nullptr, []() { return true; }, this);
+    
+    }
+
     // Window menu
     auto windowMenu = new wxMenu();
     {
@@ -1994,6 +2054,7 @@ void MainFrame::init_menubar_as_editor()
     m_menubar = new wxMenuBar();
     m_menubar->Append(fileMenu, _L("&File"));
     if (editMenu) m_menubar->Append(editMenu, _L("&Edit"));
+    m_menubar->Append(myMenu, _L("&My Menu"));
     m_menubar->Append(windowMenu, _L("&Window"));
     if (viewMenu) m_menubar->Append(viewMenu, _L("&View"));
     if (m_calibration_menu) m_menubar->Append(m_calibration_menu, _L("C&alibration"));
