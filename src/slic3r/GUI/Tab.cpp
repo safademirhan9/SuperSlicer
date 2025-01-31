@@ -886,7 +886,6 @@ void TabPrinter::msw_rescale()
     Layout();
 }
 
-// TODO: Filament Settings tab
 void TabFilament::init_options_list()
 {
     if (!m_options_list.empty())
@@ -3076,13 +3075,6 @@ void TabFilament::init()
 }
 void TabFilament::build() { append(this->m_pages, create_pages("filament.ui")); }
 
-void TabHello::init()
-{
-    m_presets = &m_preset_bundle->filaments;
-    load_initial_data();
-}
-void TabHello::build() { append(this->m_pages, create_pages("filament.ui")); }
-
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabFilament::reload_config()
 {
@@ -3103,32 +3095,7 @@ void TabFilament::update_volumetric_flow_preset_hints()
         m_volumetric_speed_description_line->SetText(text);
 }
 
-void TabHello::update_volumetric_flow_preset_hints()
-{
-    wxString text;
-    try {
-        text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
-    } catch (std::exception &ex) {
-        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
-    }
-    if(m_volumetric_speed_description_line)
-        m_volumetric_speed_description_line->SetText(text);
-}
-
 void TabFilament::update_description_lines()
-{
-    Tab::update_description_lines();
-
-    if (!m_active_page)
-        return;
-
-    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "cooling") != m_active_page->descriptions.end() && m_cooling_description_line)
-        m_cooling_description_line->SetText(from_u8(PresetHints::cooling_description(m_presets->get_edited_preset(), m_preset_bundle->printers.get_edited_preset())));
-    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "volumetric_speed") != m_active_page->descriptions.end() && m_volumetric_speed_description_line)
-        this->update_volumetric_flow_preset_hints();
-}
-
-void TabHello::update_description_lines()
 {
     Tab::update_description_lines();
 
@@ -3192,6 +3159,56 @@ void TabFilament::update()
     }
 }
 
+void TabFilament::clear_pages()
+{
+    Tab::clear_pages();
+
+    m_volumetric_speed_description_line = nullptr;
+    m_cooling_description_line = nullptr;
+}
+
+void TabHello::init()
+{
+    m_presets = &m_preset_bundle->filaments;
+    load_initial_data();
+}
+
+void TabHello::build() { append(this->m_pages, create_pages("hello.ui")); }
+
+void TabHello::reload_config()
+{
+    this->compatible_widget_reload(m_compatible_printers);
+    this->compatible_widget_reload(m_compatible_prints);
+    Tab::reload_config();
+}   
+
+void TabHello::update_volumetric_flow_preset_hints()
+{
+    wxString text;
+    try {
+        text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+    } catch (std::exception &ex) {
+        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
+    }
+    if(m_volumetric_speed_description_line)
+        m_volumetric_speed_description_line->SetText(text);
+}
+
+void TabHello::update_description_lines()
+{
+    Tab::update_description_lines();
+
+    if (!m_active_page)
+        return;
+
+    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "cooling") != m_active_page->descriptions.end() && m_cooling_description_line)
+        m_cooling_description_line->SetText(from_u8(PresetHints::cooling_description(m_presets->get_edited_preset(), m_preset_bundle->printers.get_edited_preset())));
+    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "volumetric_speed") != m_active_page->descriptions.end() && m_volumetric_speed_description_line)
+        this->update_volumetric_flow_preset_hints();
+}
+
+void TabHello::toggle_options(){}
+
 void TabHello::update()
 {
     if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
@@ -3212,14 +3229,6 @@ void TabHello::update()
     }
 }
 
-void TabFilament::clear_pages()
-{
-    Tab::clear_pages();
-
-    m_volumetric_speed_description_line = nullptr;
-    m_cooling_description_line = nullptr;
-}
-
 void TabHello::clear_pages()
 {
     Tab::clear_pages();
@@ -3227,6 +3236,7 @@ void TabHello::clear_pages()
     m_volumetric_speed_description_line = nullptr;
     m_cooling_description_line = nullptr;
 }
+
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)
 {
