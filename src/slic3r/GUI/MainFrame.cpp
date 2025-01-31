@@ -1260,10 +1260,13 @@ void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
     add_created_tab(new TabPrint(m_tabpanel));
+    // TODO: TabFilament, Tabs are added from here
     add_created_tab(new TabFilament(m_tabpanel));
     add_created_tab(new TabSLAPrint(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));
     add_created_tab(new TabPrinter(m_tabpanel));
+    // TODO: Tab HELLO
+    add_created_tab(new TabHello(m_tabpanel));
     TabFrequent* freq = (new TabFrequent(m_tabpanel, "Freq_fff", Preset::Type::TYPE_FREQUENT_FFF));
     freq->create_preset_tab();
     freq = (new TabFrequent(m_tabpanel, "Freq_sla", Preset::Type::TYPE_FREQUENT_SLA));

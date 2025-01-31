@@ -886,7 +886,17 @@ void TabPrinter::msw_rescale()
     Layout();
 }
 
+// TODO: Filament Settings tab
 void TabFilament::init_options_list()
+{
+    if (!m_options_list.empty())
+        m_options_list.clear();
+
+    for (const std::string &opt_key : m_config_base->keys())
+        m_options_list.emplace(opt_key, std::pair<int, int>(0, m_opt_status_value));
+}
+
+void TabHello::init_options_list()
 {
     if (!m_options_list.empty())
         m_options_list.clear();
@@ -2472,6 +2482,7 @@ std::vector<Slic3r::GUI::PageShp> Tab::create_pages(std::string setting_type_nam
             } else if (boost::starts_with(full_line, "parent_preset_description")) {
                 build_preset_description_line(current_group.get());
             } else if (boost::starts_with(full_line, "cooling_description")) {
+                // TODO: Filament Settings tab
                 TabFilament *tab = nullptr;
                 if ((tab = dynamic_cast<TabFilament *>(this)) == nullptr)
                     continue;
@@ -2483,6 +2494,7 @@ std::vector<Slic3r::GUI::PageShp> Tab::create_pages(std::string setting_type_nam
                 current_group->append_line(current_line);
                 current_page->descriptions.push_back("cooling");
             } else if (boost::starts_with(full_line, "volumetric_speed_description")) {
+                // TODO: Filament Settings tab
                 TabFilament *tab = nullptr;
                 if ((tab = dynamic_cast<TabFilament *>(this)) == nullptr)
                     continue;
@@ -2688,6 +2700,7 @@ std::vector<Slic3r::GUI::PageShp> Tab::create_pages(std::string setting_type_nam
                 // I don't think it's needed to do special things for theses.
                 if (boost::starts_with(full_line, "filament_overrides_page"))
                 {
+                    // TODO: Filament Settings tab
                     TabFilament *tab = nullptr;
                     if ((tab = dynamic_cast<TabFilament *>(this)) == nullptr)
                         continue;
@@ -2939,6 +2952,7 @@ bool Tab::validate_custom_gcode(const wxString& title, const std::string& gcode)
 //    tab->on_value_change(opt_key, value);
 //}
 
+// TODO: Filament Settings tab
 PageShp TabFilament::create_filament_overrides_page()
 {
     PageShp page = create_options_page(L("Filament Overrides"), "wrench");
@@ -3062,6 +3076,13 @@ void TabFilament::init()
 }
 void TabFilament::build() { append(this->m_pages, create_pages("filament.ui")); }
 
+void TabHello::init()
+{
+    m_presets = &m_preset_bundle->filaments;
+    load_initial_data();
+}
+void TabHello::build() { append(this->m_pages, create_pages("filament.ui")); }
+
 // Reload current config (aka presets->edited_preset->config) into the UI fields.
 void TabFilament::reload_config()
 {
@@ -3082,7 +3103,32 @@ void TabFilament::update_volumetric_flow_preset_hints()
         m_volumetric_speed_description_line->SetText(text);
 }
 
+void TabHello::update_volumetric_flow_preset_hints()
+{
+    wxString text;
+    try {
+        text = from_u8(PresetHints::maximum_volumetric_flow_description(*m_preset_bundle));
+    } catch (std::exception &ex) {
+        text = _(L("Volumetric flow hints not available")) + "\n\n" + from_u8(ex.what());
+    }
+    if(m_volumetric_speed_description_line)
+        m_volumetric_speed_description_line->SetText(text);
+}
+
 void TabFilament::update_description_lines()
+{
+    Tab::update_description_lines();
+
+    if (!m_active_page)
+        return;
+
+    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "cooling") != m_active_page->descriptions.end() && m_cooling_description_line)
+        m_cooling_description_line->SetText(from_u8(PresetHints::cooling_description(m_presets->get_edited_preset(), m_preset_bundle->printers.get_edited_preset())));
+    if (std::find(m_active_page->descriptions.begin(), m_active_page->descriptions.end(), "volumetric_speed") != m_active_page->descriptions.end() && m_volumetric_speed_description_line)
+        this->update_volumetric_flow_preset_hints();
+}
+
+void TabHello::update_description_lines()
 {
     Tab::update_description_lines();
 
@@ -3146,7 +3192,35 @@ void TabFilament::update()
     }
 }
 
+void TabHello::update()
+{
+    if (m_preset_bundle->printers.get_selected_preset().printer_technology() == ptSLA)
+        return; // ys_FIXME
+
+    m_update_cnt++;
+
+    update_description_lines();
+    Layout();
+
+    toggle_options();
+
+    m_update_cnt--;
+
+    if (m_update_cnt == 0) {
+        assert(m_config);
+        wxGetApp().mainframe->on_config_changed(*m_config);
+    }
+}
+
 void TabFilament::clear_pages()
+{
+    Tab::clear_pages();
+
+    m_volumetric_speed_description_line = nullptr;
+    m_cooling_description_line = nullptr;
+}
+
+void TabHello::clear_pages()
 {
     Tab::clear_pages();
 

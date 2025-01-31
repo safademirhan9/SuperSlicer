@@ -561,6 +561,7 @@ public:
 	SubstitutionManager m_subst_manager;
 };
 
+// TODO: Filament Settings tab
 class TabFilament : public Tab
 {
 public:
@@ -590,6 +591,38 @@ public:
 	void		init_options_list() override;
 	PrinterTechnology get_printer_technology() const override { return ptFFF; }
 };
+
+// TODO: HELLO Settings tab
+class TabHello : public Tab
+{
+public:
+	ogStaticText*	m_volumetric_speed_description_line {nullptr};
+	ogStaticText*	m_cooling_description_line {nullptr};
+	ogStaticText*	m_machine_limits_descr {nullptr};
+	PageShp         create_filament_overrides_page();
+protected:
+    void            update_filament_overrides_page();
+	void 			update_volumetric_flow_preset_hints();
+
+    std::map<std::string, wxCheckBox*> m_overrides_options;
+public:
+	TabHello(wxBookCtrlBase* parent) :
+		Tab(parent, _(L("Hello Settings")), Slic3r::Preset::TYPE_FFF_FILAMENT) {}
+	~TabHello() {}
+
+	std::string icon_name(int icon_size, PrinterTechnology tech) const override { return (icon_size < 16) ? "spool" : "spool_cog"; }
+	
+	void		init() override;
+	void		build() override;
+	void		reload_config() override;
+	void		update_description_lines() override;
+	void		toggle_options() override;
+	void		update() override;
+	void		clear_pages() override;
+	void		init_options_list() override;
+	PrinterTechnology get_printer_technology() const override { return ptFFF; }
+};
+
 
 class TabPrinter : public Tab
 {
