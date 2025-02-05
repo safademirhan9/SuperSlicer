@@ -593,22 +593,21 @@ public:
 };
 
 // TODO: HELLO Settings tab
-class TabHello : public Tab
+class TabQuick : public Tab
 {
 public:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
 	ogStaticText*	m_machine_limits_descr {nullptr};
-	PageShp         create_filament_overrides_page();
 protected:
     void            update_filament_overrides_page();
 	void 			update_volumetric_flow_preset_hints();
 
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
-	TabHello(wxBookCtrlBase* parent) :
-		Tab(parent, _(L("Hello Settings")), Slic3r::Preset::TYPE_FFF_FILAMENT) {}
-	~TabHello() {}
+	TabQuick(wxBookCtrlBase* parent) :
+		Tab(parent, _(L("Quick Settings")), Slic3r::Preset::TYPE_FFF_FILAMENT) {}
+	~TabQuick() {}
 
 	std::string icon_name(int icon_size, PrinterTechnology tech) const override { return (icon_size < 16) ? "spool" : "spool_cog"; }
 	
@@ -621,8 +620,14 @@ public:
 	void		clear_pages() override;
 	void		init_options_list() override;
 	PrinterTechnology get_printer_technology() const override { return ptFFF; }
-};
 
+private:
+	wxButton* m_button_hello;
+    wxButton* m_button_import;
+	void onButtonClick(wxCommandEvent& event);
+    void OnTabChanged(wxBookCtrlEvent& event);
+    wxNotebook* notebook;
+};
 
 class TabPrinter : public Tab
 {

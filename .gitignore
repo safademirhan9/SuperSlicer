@@ -12,6 +12,7 @@ xs/MANIFEST.bak
 xs/assertlib*
 .init_bundle.ini
 .vs/*
+/.idea
 local-lib
 /src/TAGS
 /.vscode/
