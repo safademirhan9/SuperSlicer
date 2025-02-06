@@ -3170,7 +3170,41 @@ void TabQuick::init()
     m_presets = &m_preset_bundle->fff_prints;
     load_initial_data();
 }
-void TabQuick::build() { append(this->m_pages, create_pages("hello.ui")); }
+
+void TabQuick::set_plater(Plater* plater) {
+    m_plater = plater;
+}
+
+void TabQuick::build() {
+    // hello.ui dosyasından mevcut arayüzü yüklüyoruz.
+    append(this->m_pages, create_pages("hello.ui"));
+
+    // Yeni bir buton oluşturuyoruz.
+    wxButton* importButton = new wxButton(this, wxID_ANY, _T("Import STL/3MF/STEP/OBJ/AM&F"));
+
+    // Buton için event binding yapıyoruz.
+    importButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        if (m_plater) {
+            m_plater->add_model();
+        }
+    });
+
+    // Mevcut sizer'ı alıyoruz.
+    wxSizer* sizer = this->GetSizer();
+    if (sizer) {
+        // Butonu sizer'ın en üstüne eklemek için index 0'a Insert ediyoruz.
+        sizer->Insert(0, importButton, 0, wxALL | wxCENTER, 5);
+        sizer->Layout();
+    }
+    else {
+        // Eğer sizer yoksa, yeni bir sizer oluşturup butonu ilk eleman olarak ekliyoruz.
+        wxBoxSizer* newSizer = new wxBoxSizer(wxVERTICAL);
+        newSizer->Add(importButton, 0, wxALL | wxCENTER, 5);
+        this->SetSizer(newSizer);
+        newSizer->Layout();
+    }
+}
+
 
 void TabQuick::reload_config() {}
 void TabQuick::update_volumetric_flow_preset_hints() {}

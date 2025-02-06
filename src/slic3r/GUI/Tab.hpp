@@ -43,6 +43,7 @@
 namespace Slic3r {
 namespace GUI {
 
+class Plater;
 class TabPresetComboBox;
 class OG_CustomCtrl;
 
@@ -606,13 +607,17 @@ protected:
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
 	TabQuick(wxBookCtrlBase* parent) :
-		Tab(parent, _(L("Quick Settings")), Slic3r::Preset::TYPE_FFF_FILAMENT) {}
+		Tab(parent, _(L("Quick Settings")), Slic3r::Preset::TYPE_FFF_PRINT) {}
 	~TabQuick() {}
+
+    Plater* m_plater { nullptr };
+    Plater* plater() { return m_plater; }
 
 	std::string icon_name(int icon_size, PrinterTechnology tech) const override { return (icon_size < 16) ? "spool" : "spool_cog"; }
 	
 	void		init() override;
 	void		build() override;
+    void        set_plater(Plater* plater);
 	void		reload_config() override;
 	void		update_description_lines() override;
 	void		toggle_options() override;
@@ -620,13 +625,6 @@ public:
 	void		clear_pages() override;
 	void		init_options_list() override;
 	PrinterTechnology get_printer_technology() const override { return ptFFF; }
-
-private:
-	wxButton* m_button_hello;
-    wxButton* m_button_import;
-	void onButtonClick(wxCommandEvent& event);
-    void OnTabChanged(wxBookCtrlEvent& event);
-    wxNotebook* notebook;
 };
 
 class TabPrinter : public Tab

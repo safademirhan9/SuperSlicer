@@ -167,6 +167,7 @@ DPIFrame(NULL, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxDEFAULT_FRAME_S
 //       _L("Remember to check for updates at https://github.com/prusa3d/PrusaSlicer/releases"));
 
     // initialize tabpanel and menubar
+    // initialize m_plater
     init_tabpanel();
     if (wxGetApp().is_gcode_viewer())
         init_menubar_as_gcodeviewer();
@@ -1259,7 +1260,10 @@ void MainFrame::register_win32_callbacks()
 void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
-    add_created_tab(new TabQuick(m_tabpanel));
+    //    add_created_tab(new TabQuick(m_tabpanel));
+    TabQuick* tabQuick = new TabQuick(m_tabpanel);
+    tabQuick->set_plater(this->m_plater);
+    add_created_tab(tabQuick);
     add_created_tab(new TabPrint(m_tabpanel));
     add_created_tab(new TabFilament(m_tabpanel));
     add_created_tab(new TabSLAPrint(m_tabpanel));
