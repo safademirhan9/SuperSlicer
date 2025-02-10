@@ -3176,41 +3176,100 @@ void TabQuick::set_plater(Plater* plater) {
 }
 
 void TabQuick::build() {
-    // hello.ui dosyasından mevcut arayüzü yüklüyoruz.
     append(this->m_pages, create_pages("hello.ui"));
 
-    // Yeni bir buton oluşturuyoruz.
+    // Import button
     wxButton* importButton = new wxButton(this, wxID_ANY, _T("Import STL/3MF/STEP/OBJ/AM&F"));
-
-    // Buton için event binding yapıyoruz.
     importButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         if (m_plater) {
             m_plater->add_model();
         }
     });
 
-    // Mevcut sizer'ı alıyoruz.
     wxSizer* sizer = this->GetSizer();
-    if (sizer) {
-        // Butonu sizer'ın en üstüne eklemek için index 0'a Insert ediyoruz.
-        sizer->Insert(0, importButton, 0, wxALL | wxCENTER, 5);
-        sizer->Layout();
+    if (!sizer) {
+        sizer = new wxBoxSizer(wxVERTICAL);
+        this->SetSizer(sizer);
     }
-    else {
-        // Eğer sizer yoksa, yeni bir sizer oluşturup butonu ilk eleman olarak ekliyoruz.
-        wxBoxSizer* newSizer = new wxBoxSizer(wxVERTICAL);
-        newSizer->Add(importButton, 0, wxALL | wxCENTER, 5);
-        this->SetSizer(newSizer);
-        newSizer->Layout();
+
+    sizer->Insert(0, importButton, 0, wxALL | wxCENTER, 5);
+
+    // Filament combo box'larını içerecek bir sizer oluşturuyoruz (bu sizer, dinamik güncelleme için kullanılacak).
+    if (!m_filamentSizer) {
+        m_filamentSizer = new wxBoxSizer(wxVERTICAL);
+        // Import butonunun hemen altına ekleyelim.
+        sizer->Insert(1, m_filamentSizer, 0, wxEXPAND | wxALL, 5);
     }
+
 }
 
+void TabQuick::update() {
+    // Filament combobox'larını güncelleyelim.
+    update_filament_combos();
+    this->Layout();
+}
+
+void TabQuick::update_filament_combos() {
+    // Merkezi preset modelden printer bilgisine ulaşalım.
+    PresetBundle &preset_bundle = *wxGetApp().preset_bundle;
+    // Varsayılan olarak en az 1 extruder olsun.
+    size_t extruderCount = 1;
+    // Eğer FFF printer ise, nozzle_diameter seçeneğinden extruder sayısını alabilirsiniz.
+    if (preset_bundle.printers.get_edited_preset().printer_technology() == ptFFF) {
+        // Bu örnekte, nozzle_diameter option'ının değer sayısını extruder sayısı kabul ediyoruz.
+        extruderCount = dynamic_cast<ConfigOptionFloats*>(
+            preset_bundle.printers.get_edited_preset().config.option("nozzle_diameter")
+        )->values.size();
+    }
+
+    // Yeni combobox'lar ekle (eğer mevcut sayısı yetersizse):
+    while (m_filamentCombos.size() < extruderCount) {
+        int idx = m_filamentCombos.size();
+        // Quick Settings için yeni bir combobox oluşturuluyor;
+        // parent olarak 'this' (TabQuick) kullanılıyor.
+        PlaterPresetComboBox* combo = new PlaterPresetComboBox(this, Slic3r::Preset::TYPE_FFF_FILAMENT);
+        combo->set_extruder_idx(idx);
+
+        // Combo box ile edit butonunu yatayda tutmak için bir sizer oluşturuyoruz:
+        wxBoxSizer* comboAndBtnSizer = new wxBoxSizer(wxHORIZONTAL);
+        comboAndBtnSizer->Add(combo, 1, wxEXPAND | wxALL, 5);
+        comboAndBtnSizer->Add(combo->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+
+        // Bu sizer'ı filament sizer'ımıza ekliyoruz.
+        m_filamentSizer->Add(comboAndBtnSizer, 0, wxEXPAND | wxALL, 5);
+
+        // Event binding: Seçim değiştiğinde merkezi preset modelini güncelleyelim.
+        combo->Bind(wxEVT_COMBOBOX, [this, combo](wxCommandEvent& event) {
+            wxString secilen = combo->GetStringSelection();
+            // Seçimi merkezi preset modeline aktar (extruder indeksine göre)
+            wxGetApp().preset_bundle->set_filament_preset(combo->get_extruder_idx(), std::string(secilen.mb_str()));
+            // Plater tarafındaki combobox'ları da güncelleyelim.
+            if (m_plater) {
+                m_plater->sidebar().update_all_preset_comboboxes();
+            }
+        });
+
+        m_filamentCombos.push_back(combo);
+        combo->update();
+    }
+
+    // Fazla combobox varsa kaldırmak için (örneğin, extruder sayısı azaldıysa)
+    while (m_filamentCombos.size() > extruderCount) {
+        int lastIndex = m_filamentCombos.size() - 1;
+        // m_filamentSizer'dan ilgili sizer öğesini kaldırıyoruz.
+        m_filamentSizer->Remove(lastIndex);
+        m_filamentCombos[lastIndex]->Destroy();
+        m_filamentCombos.pop_back();
+    }
+
+    // Layout'u güncelleyelim.
+    this->Layout();
+}
 
 void TabQuick::reload_config() {}
 void TabQuick::update_volumetric_flow_preset_hints() {}
 void TabQuick::update_description_lines() {}
 void TabQuick::toggle_options() {}
-void TabQuick::update() {}
 void TabQuick::clear_pages() {}
 
 wxSizer* Tab::description_line_widget(wxWindow* parent, ogStaticText* *StaticText, wxString text /*= wxEmptyString*/)

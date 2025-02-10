@@ -44,6 +44,7 @@ namespace Slic3r {
 namespace GUI {
 
 class Plater;
+class PlaterPresetComboBox;
 class TabPresetComboBox;
 class OG_CustomCtrl;
 
@@ -593,7 +594,6 @@ public:
 	PrinterTechnology get_printer_technology() const override { return ptFFF; }
 };
 
-// TODO: HELLO Settings tab
 class TabQuick : public Tab
 {
 public:
@@ -614,9 +614,12 @@ public:
     Plater* plater() { return m_plater; }
 
 	std::string icon_name(int icon_size, PrinterTechnology tech) const override { return (icon_size < 16) ? "spool" : "spool_cog"; }
+	std::vector<PlaterPresetComboBox*> m_filamentCombos;
+	wxBoxSizer* m_filamentSizer = nullptr; 
 	
 	void		init() override;
 	void		build() override;
+	void 		update_filament_combos();
     void        set_plater(Plater* plater);
 	void		reload_config() override;
 	void		update_description_lines() override;
