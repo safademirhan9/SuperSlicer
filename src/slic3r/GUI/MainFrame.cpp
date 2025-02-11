@@ -1261,14 +1261,14 @@ void MainFrame::create_preset_tabs()
 {
     wxGetApp().update_label_colours_from_appconfig();
     //    add_created_tab(new TabQuick(m_tabpanel));
-    TabQuick* tabQuick = new TabQuick(m_tabpanel);
-    tabQuick->set_plater(this->m_plater);
-    add_created_tab(tabQuick);
     add_created_tab(new TabPrint(m_tabpanel));
     add_created_tab(new TabFilament(m_tabpanel));
     add_created_tab(new TabSLAPrint(m_tabpanel));
     add_created_tab(new TabSLAMaterial(m_tabpanel));
     add_created_tab(new TabPrinter(m_tabpanel));
+    TabQuick* tabQuick = new TabQuick(m_tabpanel);
+    tabQuick->set_plater(this->m_plater);
+    add_created_tab(tabQuick);
     TabFrequent* freq = (new TabFrequent(m_tabpanel, "Freq_fff", Preset::Type::TYPE_FREQUENT_FFF));
     freq->create_preset_tab();
     freq = (new TabFrequent(m_tabpanel, "Freq_sla", Preset::Type::TYPE_FREQUENT_SLA));

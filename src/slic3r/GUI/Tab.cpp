@@ -3204,7 +3204,6 @@ void TabQuick::build() {
 }
 
 void TabQuick::update() {
-    // Filament combobox'larını güncelleyelim.
     update_filament_combos();
     this->Layout();
 }
