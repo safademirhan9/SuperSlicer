@@ -3178,14 +3178,6 @@ void TabQuick::set_plater(Plater* plater) {
 void TabQuick::build() {
     append(this->m_pages, create_pages("hello.ui"));
 
-    // Import button
-    wxButton* importButton = new wxButton(this, wxID_ANY, _T("Import STL/3MF/STEP/OBJ/AM&F"));
-    importButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
-        if (m_plater) {
-            m_plater->add_model();
-        }
-    });
-
     // Create the sizer if it doesn't exist.
     wxSizer* sizer = this->GetSizer();
     if (!sizer) {
@@ -3193,13 +3185,41 @@ void TabQuick::build() {
         this->SetSizer(sizer);
     }
 
-    sizer->Insert(0, importButton, 0, wxALL | wxCENTER, 5);
+    // Progress bar
+    progressBar = new wxGauge(this, wxID_ANY, 3, wxDefaultPosition, wxSize(200, 20));
+    progressBar->SetValue(1);
+    // Add this to the sizer
+    sizer->Insert(0, progressBar, 0, wxEXPAND | wxALL, 10);
+
+    // Import button
+    wxBoxSizer* importSizer = new wxBoxSizer(wxHORIZONTAL);
+    wxStaticText* importLabel = new wxStaticText(this, wxID_ANY, _T("1. Modeli ekleyiniz"));
+    wxButton* importButton = new wxButton(this, wxID_ANY, _T("Import STL/3MF/STEP/OBJ/AM&F"));
+    importButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
+        if (m_plater) {
+            bool success = m_plater->add_model();
+            if (success) {
+                progressBar->SetValue(2);
+            }
+        }
+    });
+    // sizer->Insert(1, importButton, 0, wxALL | wxCENTER, 5);
+    importSizer->Add(importLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+    importSizer->Add(importButton, 0, wxALL, 5);
+    sizer->Insert(1, importSizer, 0, wxALL | wxCENTER, 5);
+
+    // Add a horizontal line between the import button and the filament comboboxes
+    wxStaticLine* staticLine = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+    sizer->Insert(2, staticLine, 0, wxEXPAND | wxALL, 5);
 
     // Create the filament sizer if it doesn't exist.
     if (!m_filamentSizer) {
         m_filamentSizer = new wxBoxSizer(wxHORIZONTAL);
         // Add the filament sizer under the import button.
-        sizer->Insert(1, m_filamentSizer, 0, wxALL | wxCENTER, 5);
+        sizer->Insert(3, m_filamentSizer, 0, wxALL | wxCENTER, 5);
+        wxStaticLine* staticLine2 = new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_HORIZONTAL);
+        sizer->Insert(4, staticLine2, 0, wxEXPAND | wxALL, 5);
+
     }
 }
 
@@ -3221,20 +3241,22 @@ void TabQuick::update_filament_combos() {
         )->values.size();
     }
 
-    // Yeni combobox'lar ekle (eğer mevcut sayısı yetersizse):
+    // Add new comboboxes if needed
     while (m_filamentCombos.size() < extruderCount) {
         int idx = m_filamentCombos.size();
-        // Quick Settings için yeni bir combobox oluşturuluyor;
-        // parent olarak 'this' (TabQuick) kullanılıyor.
         PlaterPresetComboBox* combo = new PlaterPresetComboBox(this, Slic3r::Preset::TYPE_FFF_FILAMENT);
         combo->set_extruder_idx(idx);
 
         // Combo box ile edit butonunu yatayda tutmak için bir sizer oluşturuyoruz:
         wxBoxSizer* comboAndBtnSizer = new wxBoxSizer(wxHORIZONTAL);
+        if(idx == 0) {
+            wxStaticText* filamentLabel = new wxStaticText(this, wxID_ANY, _T("2. Materyal seçiniz"));
+            comboAndBtnSizer->Add(filamentLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
+        }
         comboAndBtnSizer->Add(combo, 1, wxEXPAND | wxALL, 5);
         comboAndBtnSizer->Add(combo->edit_btn, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
 
-        // Bu sizer'ı filament sizer'ımıza ekliyoruz.
+        // Add this sizer to the filament sizer
         m_filamentSizer->Add(comboAndBtnSizer, 0, wxEXPAND | wxALL, 5);
 
         // Event binding: Seçim değiştiğinde merkezi preset modelini güncelleyelim.
@@ -3245,6 +3267,7 @@ void TabQuick::update_filament_combos() {
             // Plater tarafındaki combobox'ları da güncelleyelim.
             if (m_plater) {
                 m_plater->sidebar().update_all_preset_comboboxes();
+                progressBar->SetValue(3);
             }
         });
 

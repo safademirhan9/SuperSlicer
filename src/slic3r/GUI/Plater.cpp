@@ -5300,12 +5300,12 @@ void Plater::load_project(const wxString& filename)
     }
 }
 
-void Plater::add_model(bool imperial_units/* = false*/)
+bool Plater::add_model(bool imperial_units/* = false*/)
 {
     wxArrayString input_files;
     wxGetApp().import_model(this, input_files);
     if (input_files.empty())
-        return;
+        return false;
 
     std::vector<fs::path> paths;
     for (const auto &file : input_files)
@@ -5330,6 +5330,7 @@ void Plater::add_model(bool imperial_units/* = false*/)
     Plater::TakeSnapshot snapshot(this, snapshot_label);
     if (! load_files(paths, true, false, true, imperial_units).empty())
         wxGetApp().mainframe->update_title();
+    return true;
 }
 
 void Plater::import_sl1_archive()

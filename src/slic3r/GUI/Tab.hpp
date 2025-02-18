@@ -600,19 +600,20 @@ public:
 	ogStaticText*	m_volumetric_speed_description_line {nullptr};
 	ogStaticText*	m_cooling_description_line {nullptr};
 	ogStaticText*	m_machine_limits_descr {nullptr};
-protected:
+	protected:
     void            update_filament_overrides_page();
 	void 			update_volumetric_flow_preset_hints();
-
+	
     std::map<std::string, wxCheckBox*> m_overrides_options;
-public:
+	public:
 	TabQuick(wxBookCtrlBase* parent) :
-		Tab(parent, _(L("HELO3D Settings")), Slic3r::Preset::TYPE_FFF_PRINT) {}
+	Tab(parent, _(L("HELO3D Settings")), Slic3r::Preset::TYPE_FFF_PRINT) {}
 	~TabQuick() {}
-
+	
+	wxGauge* progressBar;
     Plater* m_plater { nullptr };
     Plater* plater() { return m_plater; }
-
+	
 	std::string icon_name(int icon_size, PrinterTechnology tech) const override { return (icon_size < 16) ? "spool" : "spool_cog"; }
 	std::vector<PlaterPresetComboBox*> m_filamentCombos;
 	wxBoxSizer* m_filamentSizer = nullptr; 

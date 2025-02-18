@@ -168,7 +168,7 @@ public:
     bool new_project(std::string project_name = "");
     void load_project();
     void load_project(const wxString& filename);
-    void add_model(bool imperial_units = false);
+    bool add_model(bool imperial_units = false);
     void import_sl1_archive();
     void extract_config_from_project();
     void load_gcode();
