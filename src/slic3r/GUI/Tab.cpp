@@ -3186,6 +3186,7 @@ void TabQuick::build() {
         }
     });
 
+    // Create the sizer if it doesn't exist.
     wxSizer* sizer = this->GetSizer();
     if (!sizer) {
         sizer = new wxBoxSizer(wxVERTICAL);
@@ -3194,13 +3195,12 @@ void TabQuick::build() {
 
     sizer->Insert(0, importButton, 0, wxALL | wxCENTER, 5);
 
-    // Filament combo box'larını içerecek bir sizer oluşturuyoruz (bu sizer, dinamik güncelleme için kullanılacak).
+    // Create the filament sizer if it doesn't exist.
     if (!m_filamentSizer) {
-        m_filamentSizer = new wxBoxSizer(wxVERTICAL);
-        // Import butonunun hemen altına ekleyelim.
-        sizer->Insert(1, m_filamentSizer, 0, wxEXPAND | wxALL, 5);
+        m_filamentSizer = new wxBoxSizer(wxHORIZONTAL);
+        // Add the filament sizer under the import button.
+        sizer->Insert(1, m_filamentSizer, 0, wxALL | wxCENTER, 5);
     }
-
 }
 
 void TabQuick::update() {

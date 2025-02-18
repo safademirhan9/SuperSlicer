@@ -607,7 +607,7 @@ protected:
     std::map<std::string, wxCheckBox*> m_overrides_options;
 public:
 	TabQuick(wxBookCtrlBase* parent) :
-		Tab(parent, _(L("Quick Settings")), Slic3r::Preset::TYPE_FFF_PRINT) {}
+		Tab(parent, _(L("HELO3D Settings")), Slic3r::Preset::TYPE_FFF_PRINT) {}
 	~TabQuick() {}
 
     Plater* m_plater { nullptr };
