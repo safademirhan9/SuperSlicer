@@ -3194,6 +3194,9 @@ void TabQuick::build() {
     // Import button
     wxBoxSizer* importSizer = new wxBoxSizer(wxHORIZONTAL);
     wxStaticText* importLabel = new wxStaticText(this, wxID_ANY, _T("1. Modeli ekleyiniz"));
+    wxFont font = importLabel->GetFont();
+    font.SetWeight(wxFONTWEIGHT_BOLD);
+    importLabel->SetFont(font);
     wxButton* importButton = new wxButton(this, wxID_ANY, _T("Import STL/3MF/STEP/OBJ/AM&F"));
     importButton->Bind(wxEVT_BUTTON, [this](wxCommandEvent& event) {
         if (m_plater) {
@@ -3251,6 +3254,9 @@ void TabQuick::update_filament_combos() {
         wxBoxSizer* comboAndBtnSizer = new wxBoxSizer(wxHORIZONTAL);
         if(idx == 0) {
             wxStaticText* filamentLabel = new wxStaticText(this, wxID_ANY, _T("2. Materyal seçiniz"));
+            wxFont font = filamentLabel->GetFont();
+            font.SetWeight(wxFONTWEIGHT_BOLD);
+            filamentLabel->SetFont(font);
             comboAndBtnSizer->Add(filamentLabel, 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
         }
         comboAndBtnSizer->Add(combo, 1, wxEXPAND | wxALL, 5);
